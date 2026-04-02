@@ -1,4 +1,5 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Req } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -24,5 +25,15 @@ export class AuthController {
       Number(dto.userId),
       dto.refreshToken,
     );
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('debug')
+  debug(@Req() req: any) {
+    return {
+      message: 'Acesso autorizado 🚀',
+      user: req.user,
+      headers: req.headers,
+    };
   }
 }

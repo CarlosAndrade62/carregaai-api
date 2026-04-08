@@ -1,15 +1,20 @@
-import { IsIn, IsNotEmpty, MinLength } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { Role } from '@prisma/client';
 
 export class CreateUserDto {
+  @IsString()
   @IsNotEmpty()
-  @MinLength(3)
   username: string;
 
+  @IsString()
   @IsNotEmpty()
-  @MinLength(6)
   password: string;
 
   @IsNotEmpty()
-  @IsIn(['ADMIN', 'USER'])
-  role: 'ADMIN' | 'USER';
+  role: Role;
+
+  @Type(() => Number)
+  @IsInt()
+  tenantId: number;
 }

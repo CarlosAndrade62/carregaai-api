@@ -1,14 +1,7 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ChangePasswordDto } from '../auth/dto/change-password.dto';
+import { CreateUserDto } from '../auth/dto/create-user.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -23,6 +16,12 @@ export class UsersController {
   @Roles(Role.ADMIN)
   findAll() {
     return this.usersService.findAll();
+  }
+
+  @Post()
+  @Roles(Role.ADMIN)
+  create(@Body() dto: CreateUserDto) {
+    return this.usersService.create(dto);
   }
 
   @Post(':id/change-password')

@@ -8,15 +8,16 @@ datasource db {
 }
 
 model Tenant {
-  id        Int        @id @default(autoincrement())
-  name      String
-  users     User[]
-  createdAt DateTime   @default(now())
+  id              Int              @id @default(autoincrement())
+  name            String
+  users           User[]
+  loadingControls LoadingControl[]
+  createdAt       DateTime         @default(now())
 }
 
 model User {
   id       Int    @id @default(autoincrement())
-  username    String 
+  username String
   password String
 
   role Role @default(USER)
@@ -29,6 +30,24 @@ model User {
   createdAt DateTime @default(now())
 
   @@unique([username, tenantId])
+}
+
+model LoadingControl {
+  id                 Int      @id
+  plate              String
+  material           String
+  quantity           Decimal  @db.Decimal(18, 3)
+  additionalQuantity Decimal? @db.Decimal(18, 3)
+  status             Int      @default(0)
+  tenantId           Int
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([plate])
+  @@map("loading_controls")
 }
 
 enum Role {

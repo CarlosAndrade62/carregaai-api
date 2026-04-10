@@ -1,184 +1,122 @@
-# 🚛 CarregaAí API
+📦 Módulo: Loading Control (CarregaAí)
 
-Backend do sistema **CarregaAí**, responsável pela gestão de carregamentos com controle por empresa (multi-tenant), autenticação de usuários e integração futura com sistemas de pesagem e autorização de carga.
+Este módulo é responsável pelo controle de carregamento de veículos.
 
----
+🔐 Autenticação
 
-## 🎯 Objetivo
+Todos os endpoints requerem JWT:
 
-Automatizar o processo de carregamento de veículos, eliminando a necessidade de operador na balança e permitindo controle completo do fluxo:
+Authorization: Bearer {token}
 
-* Entrada do veículo
-* Autorização de carregamento
-* Pesagem (entrada e saída)
-* Finalização do processo
+O tenantId é obtido automaticamente do token.
 
----
+📊 Estrutura de Dados
+Campo	Tipo	Descrição
+id	int	ID gerado pelo sistema Delphi
+plate	string	Placa do veículo
+material	string	Material
+quantity	decimal	Quantidade principal
+additionalQuantity	decimal	Ajuste (+ ou -)
+status	int	Status do carregamento
+🔄 Status
+Valor	Descrição
+0	Aguardando
+1	Carregando
+5	Concluído
+9	Cancelado
+🚀 Endpoints
+🔹 Criar carregamento
 
-## 🏗️ Tecnologias Utilizadas
+POST /loading-control
 
-* **Node.js**
-* **NestJS**
-* **Prisma ORM**
-* **PostgreSQL**
-* **JWT (Autenticação)**
-* **Bcrypt (Hash de senha)**
+Exemplo:
 
----
-
-## 🧱 Arquitetura
-
-* **Multi-tenant** (cada empresa isolada por `tenantId`)
-* Autenticação via JWT
-* Estrutura modular (NestJS)
-
----
-
-## ⚙️ Configuração do Projeto
-
-### 1. Clonar o repositório
-
-```bash
-git clone https://github.com/CarlosAndrade62/carregaai-api.git
-cd carregaai-api
-```
-
----
-
-### 2. Instalar dependências
-
-```bash
-pnpm install
-```
-
----
-
-### 3. Configurar variáveis de ambiente
-
-Crie um arquivo `.env` na raiz do projeto:
-
-```env
-DATABASE_URL="postgresql://usuario:senha@localhost:5432/carregaai"
-JWT_SECRET="sua_chave_secreta"
-```
-
----
-
-### 4. Rodar migrations
-
-```bash
-npx prisma migrate dev
-```
-
----
-
-### 5. Iniciar o projeto
-
-```bash
-pnpm run start:dev
-```
-
-Servidor disponível em:
-
-```
-http://localhost:3000
-```
-
----
-
-## 🔐 Autenticação
-
-### 📌 Register
-
-Cria um usuário vinculado a um tenant existente.
-
-**POST** `/auth/register`
-
-```json
 {
-  "username": "carlos",
-  "password": "123456",
-  "tenantId": 1
+"id": 1001,
+"plate": "ABC1D23",
+"material": "Brita",
+"quantity": 20.5,
+"additionalQuantity": 0,
+"status": 0
 }
-```
 
----
+🔹 Atualizar carregamento
 
-### 📌 Login
+PATCH /loading-control/:id
 
-**POST** `/auth/login`
+Exemplos:
 
-```json
 {
-  "username": "carlos",
-  "password": "123456",
-  "tenantId": 1
+"status": 1
 }
-```
 
-**Resposta:**
-
-```json
 {
-  "accessToken": "...",
-  "refreshToken": "...",
-  "tenantId": 1,
-  "username": "carlos"
+"additionalQuantity": -2.5
 }
-```
 
----
+{
+"status": 5,
+"quantity": 18
+}
 
-### 📌 Rota protegida (exemplo)
+🔹 Listar carregamentos
 
-**GET** `/auth/debug`
+GET /loading-control
 
-Header:
+Query Params
+Param	Tipo	Descrição
+skip	int	Quantidade a pular
+take	int	Quantidade a retornar
+statusLt	int	Status menor que
+Exemplos
 
-```
-Authorization: Bearer SEU_TOKEN
-```
+Listar tudo:
+GET /loading-control
 
----
+Paginação:
+GET /loading-control?skip=0&take=10
 
-## 🗄️ Modelos principais
+Em andamento:
+GET /loading-control?statusLt=5
 
-### Tenant
+Combinado:
+GET /loading-control?statusLt=5&skip=0&take=10
 
-Representa a empresa
+🔹 Buscar por ID
 
-### User
+GET /loading-control/:id
 
-Usuário do sistema vinculado a um tenant
+📦 Resposta da API (paginada)
 
----
+{
+"items": [
+{
+"id": 1001,
+"plate": "ABC1D23",
+"material": "Brita",
+"quantity": 20.5,
+"additionalQuantity": 0,
+"status": 1
+}
+],
+"total": 1,
+"skip": 0,
+"take": 10
+}
 
-## 🚧 Próximas funcionalidades
+📌 Regras de Negócio
+Multi-tenant (isolado por tenantId)
+id vem do sistema Delphi
+additionalQuantity:
+positivo → adiciona carga
+negativo → remove carga
+Fluxo de status
 
-* [ ] Módulo de carregamentos (Load)
-* [ ] Controle de status (entrada, pesagem, saída)
-* [ ] Integração com sistema SIGA
-* [ ] Integração com balança
-* [ ] Interface web (React)
-* [ ] Logs operacionais
+0 → 1 → 5
+   ↘
+    9
 
----
-
-## 🧠 Regras de Negócio
-
-* Usuário é único por `tenant`
-* Autenticação obrigatória para acesso
-* Isolamento de dados por empresa
-
----
-
-## 👨‍💻 Autor
-
-Carlos Roberto Soares Andrade
-CRSA Consultoria LTDA
-
----
-
-## 📄 Licença
-
-## Uso interno / sob contrato
+🛠️ Stack
+NestJS
+Prisma
+PostgreSQL
